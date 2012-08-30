@@ -34,16 +34,100 @@ snippet controller
 	}
 
 snippet action
+
 	/**
-	 * ${1:Action} action
+	 * ${1:name} action
 	 *
-	 * @Route("/${2}", name="${3}")
+	 * @Route("/$1", name="${2}")
 	 * @Template()
 	 */
-	public function ${1}Action()
+	public function $1Action()
 	{
-		${4}
+		${3}
 	}
+
+snippet getAction
+
+	/**
+	 * Get one ${1:Document}
+	 */
+	public function get$1($${2:slug})
+	{
+		$${3:document} = $this->get('doctrine.odm.mongodb.document_manager')
+			->getRepository('${4:ApplicationCoreBundle}:$1')
+			->findOneBy(array('{2}' => $2));
+
+		if (!$$3) {
+			throw $this->createNotFoundException('No $3 found');
+		}
+
+		return $$3;
+	}
+
+snippet newAction
+
+	/**
+	 * Create one ${1:Document}
+	 *
+	 * @Route("/new/{${2:id}}", name="${3:application_core_document_new}")
+	 * @Template()
+	 *
+	 */
+	public function newAction()
+	{
+		$${4} = new $1();
+		$form = $this->createForm(new $1FormType(), $$4);
+
+		if ($this->processForm($form, $$4)) {
+	        $this->get('session')->getFlashBag()->set('success', '$1 updated.');
+
+			return $this->redirect($this->generateUrl('${5:application_core_document_show}', array('${6:id}' => $$4->get${7:Id}())));
+		}
+	}
+
+snippet editAction
+
+	/**
+	 * Edit one ${1:Document}
+	 *
+	 * @Route("/edit/{${2:id}}", name="${3:application_core_document_edit}")
+	 * @Template()
+	 *
+	 */
+	public function editAction($$2)
+	{
+		$${4} = $this->get$1($$2);
+
+		$form = $this->createForm(new $1FormType(), $$4);
+	}
+
+snippet processForm
+	/**
+	 * Process ${1:Document} Form
+	 */
+	public function processForm($form, $${2:document})
+	{
+		$request = $this->get('request');
+
+		if ($request->getMethod() == 'POST') {
+
+			$form->bind($request);
+
+			if (true === $form->isValid()) {
+				$dm = $this->get('doctrine.odm.mongodb.document_manager');
+
+				$dm->persist($$2);
+				$dm->flush();
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+snippet $form  
+	$form = $this->createForm(new ${1:Document}FormType(), $${2:document});
 
 snippet forward
 	return $this->forward('${1:ApplicationCoreBundle}:${2:Controller}:${3:Action}');
@@ -51,8 +135,19 @@ snippet forward
 snippet redirect
 	return $this->redirect($this->get('router')->generate('${1:route}', 301);
 
+snippet flash
+	$this->get('session')->getFlashBag()->set('success', '$1 updated.');
+
+snippet return
+	return array(
+		'${1:var}' => $$1,
+	);
+
 snippet print_r
 	print_r(${1}); exit;
+
+snippet ld 
+	ld($${1:var}); exit;	
 
 snippet use
 	use ${1:Foo\Bar\Baz};
